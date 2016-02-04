@@ -1,7 +1,7 @@
 # coding=utf-8
 
 """
-An Experiment's Report
+Handle an experiment's report.
 """
 from textwrap import dedent
 
@@ -10,6 +10,7 @@ __author__ = 'wrighroy'
 
 __all__ = ('Report',)
 
+# reports are stored in a dictionary
 reports = {}
 report_divider = "-" * 78
 
@@ -55,7 +56,10 @@ class Report(object):
         return "\n".join(parts)
 
     @classmethod
-    def get(cls, description):
+    def get(cls, description=None):
+        if description is None:
+            return reports
+
         if description not in reports.keys():
             reports[description] = Report(description)
         return reports[description]
@@ -73,7 +77,9 @@ class Report(object):
         self.enabled_experiments = [experiment for experiment in self.experiments if experiment.is_enabled]
         self.tries = len(self.enabled_experiments)
         self.contrary_experiments = [experiment for experiment in self.enabled_experiments
-                                     if experiment.use_result != experiment.try_result]
+                                     if
+                                     experiment.use_result != experiment.try_result or
+                                     experiment.use_exception != experiment.try_exception]
         self.contrary_results = len(self.contrary_experiments)
 
         def elapsed(start, end):

@@ -13,8 +13,11 @@ __author__ = 'wrighroy'
 
 
 class Experiment(object):
-    def __init__(self, description):
+    report = Report
+
+    def __init__(self, description, report=None):
         self.description = description
+        self.report = report or Experiment.report
         self.use_function = None
         self.use_result = None
         self.use_exception = None
@@ -59,7 +62,8 @@ class Experiment(object):
             finally:
                 self.try_end_time = time.time()
 
-        Report.add(self)
+        if self.report is not None:
+            self.report.add(self)
 
         if self.use_exception is not None:
             raise self.use_exception
