@@ -1,22 +1,34 @@
 
-Scientist
-========
+scientist
+=========
 
-Port of python of github's ruby scientist.
+Adapted to python from the github article at http://githubengineering.com/scientist/
 
 Usage
 -----
 
-.. code-block: bash
+::
 
-    ➤ scientist --help
+    def original(**kwargs):
+        return foo(**kwargs)
+
+    def trial(**kwargs):
+        return bar(**kwargs)
+
+    with Science('description') as experiment:
+        experiment.use_function = original
+        experiment.try_function = trial
+        experiment.perform(user='me', password='sekret')
+
+    print(Report.summary())
+
+
 
 Installation
 ------------
 
-To install from PyPI:
+To install from PyPI::
 
-.. code-block: bash
+    ➤ pip install scientist
 
-    ➤ pip install Scientist
 
