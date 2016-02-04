@@ -54,8 +54,20 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+docs/_src/
+docs/CHANGES.rst
+docs/design.rst
+docs/todo.rst
+docs/usage.rst
+
+installer/installer.conf
+installer/payload/installer.conf
+installer/*-installer.sh
+
+Science.png
 
 # PyBuilder
 target/
 
 # Created by .ignore support plugin (hsz.mobi)
+
