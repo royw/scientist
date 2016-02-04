@@ -74,7 +74,8 @@ def test_summary():
         with Science('Fibonacci subsets') as experiment:
             experiment.use_function = original
             experiment.try_function = trial
-            experiment.perform(startNumber=index, endNumber=3000 + index)
+            result = experiment.perform(startNumber=index, endNumber=3000 + index)
+            assert result
 
     report = Report.get('Fibonacci subsets')
     report.summarize()
