@@ -10,85 +10,116 @@ __author__ = 'wrighroy'
 
 __all__ = ('Report',)
 
-# reports are stored in a dictionary
-reports = {}
-report_divider = "-" * 78
-
 
 class Report(object):
+    # reports are stored in a dictionary with the experiment's description as the key and a report instance as the
+    # value.
+    reports = {}
+    report_divider = "-" * 78
+
     def __init__(self, description):
         self.description = description
         self.experiments = []
-        self.count = 0
+        self.control_count = 0
         self.enabled_experiments = []
-        self.tries = 0
+        self.enabled_count = 0
         self.contrary_experiments = []
         self.contrary_results = 0
-        self.use_elapse_times = []
-        self.use_avg_time = 0
-        self.try_elapse_times = []
-        self.try_avg_time = 0
+        self.control_elapse_times = []
+        self.control_avg_time = 0
+        self.trial_elapse_times = []
+        self.trial_avg_time = 0
 
     def __str__(self):
+        """
+        :return: The report string for this Report instance
+        :rtype: str
+        """
         output = dedent("""
         {description}
-        Total experiments: {count}
-        Enabled experiments: {tries}
+        Total experiments: {control_count}
+        Enabled experiments: {enabled_count}
         Contrary results: {contrary_results}
-        Average time for control code: {use_avg_time}
-        Average time for trial code: {try_avg_time}
+        Average time for control code: {control_avg_time}
+        Average time for trial code: {trial_avg_time}
         """.format(**self.__dict__))
         if self.contrary_experiments:
             output += "\nContrary Results:\n"
             for experiment in self.contrary_experiments:
-                output += "use results: " + repr(experiment.use_result) + "\n"
-                output += "try results: " + repr(experiment.try_result) + "\n\n"
+                output += "control results: " + repr(experiment.control_result) + "\n"
+                output += "trial results: " + repr(experiment.trial_result) + "\n\n"
         return output
 
     @classmethod
     def summary(cls):
+        """
+        :return: a report string for all of the Reports
+        :rtype: str
+        """
         parts = []
-        for description in reports.keys():
-            report = reports[description]
+        for description in Report.reports.keys():
+            report = Report.reports[description]
             report.summarize()
             parts.append(report)
-            parts.append(report_divider)
+            parts.append(Report.report_divider)
         return "\n".join(parts)
 
     @classmethod
-    def get(cls, description=None):
+    def get(cls, description):
+        """
+        Get the Report instance for the given description.  If description is None, then return all reports.
+        :param description: the experiment's description.
+        :type description: str
+        :return: the report or re
+        :rtype:
+        """
         if description is None:
-            return reports
+            raise ValueError("The description must not be None")
 
-        if description not in reports.keys():
-            reports[description] = Report(description)
-        return reports[description]
+        if description not in Report.reports.keys():
+            Report.reports[description] = Report(description)
+        return Report.reports[description]
 
     @classmethod
     def add(cls, experiment):
+        """
+        Add an experiment instance to it's the report instance with the same description as the experiment.
+
+        :param experiment: the completed experiment instance
+        :type experiment: Experiment
+        """
         report = Report.get(experiment.description)
         report.append(experiment)
 
     def append(self, experiment):
+        """
+        Append an experiment instance to this report's list of experiments.
+
+        :param experiment: the completed experiment instance
+        :type experiment: Experiment
+        """
         self.experiments.append(experiment)
 
     def summarize(self):
-        self.count = len(self.experiments)
+        """
+        Calculate the report values for this Report instance.
+        """
+        self.control_count = len(self.experiments)
         self.enabled_experiments = [experiment for experiment in self.experiments if experiment.is_enabled]
-        self.tries = len(self.enabled_experiments)
+        self.enabled_count = len(self.enabled_experiments)
         self.contrary_experiments = [experiment for experiment in self.enabled_experiments
                                      if
-                                     experiment.use_result != experiment.try_result or
-                                     experiment.use_exception != experiment.try_exception]
+                                     experiment.control_result != experiment.trial_result or
+                                     experiment.control_exception != experiment.trial_exception]
         self.contrary_results = len(self.contrary_experiments)
 
         def elapsed(start, end):
             return end - start
 
-        self.use_elapse_times = [elapsed(experiment.use_start_time, experiment.use_end_time) for experiment in
-                                 self.enabled_experiments]
-        self.use_avg_time = sum(self.use_elapse_times) / float(len(self.use_elapse_times))
+        self.control_elapse_times = [elapsed(experiment.control_start_time, experiment.control_end_time) for experiment in
+                                     self.enabled_experiments]
+        self.control_avg_time = sum(self.control_elapse_times) / float(len(self.control_elapse_times))
 
-        self.try_elapse_times = [elapsed(experiment.try_start_time, experiment.try_end_time) for experiment in
-                                 self.enabled_experiments]
-        self.try_avg_time = sum(self.try_elapse_times) / float(len(self.try_elapse_times))
+        self.trial_elapse_times = [elapsed(experiment.trial_start_time, experiment.trial_end_time) for experiment in
+                                   self.enabled_experiments]
+        self.trial_avg_time = sum(self.trial_elapse_times) / float(len(self.trial_elapse_times))

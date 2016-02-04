@@ -72,16 +72,16 @@ def test_summary():
 
     for index in range(0, 2000, 100):
         with Science('Fibonacci subsets') as experiment:
-            experiment.use_function = original
-            experiment.try_function = trial
+            experiment.control_function = original
+            experiment.trial_function = trial
             result = experiment.perform(startNumber=index, endNumber=3000 + index)
             assert result
 
     report = Report.get('Fibonacci subsets')
     report.summarize()
     print(str(report))
-    assert report.count > 0
-    assert report.tries > 0
+    assert report.control_count > 0
+    assert report.enabled_count > 0
     assert report.contrary_results == 0
     assert str(report)
 
@@ -95,14 +95,14 @@ def test_summary_with_bug():
 
     for index in range(0, 2000, 100):
         with Science('Fibonacci subsets') as experiment:
-            experiment.use_function = original
-            experiment.try_function = trial
+            experiment.control_function = original
+            experiment.trial_function = trial
             experiment.perform(startNumber=index, endNumber=3000 + index)
 
     report = Report.get('Fibonacci subsets')
     report.summarize()
     print(str(report))
-    assert report.count > 0
-    assert report.tries > 0
+    assert report.control_count > 0
+    assert report.enabled_count > 0
     assert report.contrary_results == 1
     assert str(report)

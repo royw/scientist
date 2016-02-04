@@ -3,7 +3,6 @@
 """
 Context for experimentally using new code
 """
-from decorator import contextmanager
 
 from scientist.experiment import Experiment
 from scientist.report import Report
@@ -13,6 +12,20 @@ __author__ = 'wrighroy'
 
 
 class Science(object):
+    """
+    Context manager for running experiments.
+
+    Note you may override the Report and Experiment classes used either at the class level or
+    for the instance.
+
+    Usage::
+
+        with Science('description') as experiment:
+            experiment.control_function = original
+            experiment.trial_function = trial
+            control_result = experiment.perform(user='me', password='sekret')
+
+    """
     report = Report
     experiment = Experiment
 
@@ -29,5 +42,6 @@ class Science(object):
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.__experiment is not None:
             self.__experiment.close()
+        # returning false causes any exception raised during the context to be raised on context exit.
         return False
 

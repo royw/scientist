@@ -13,21 +13,31 @@ __author__ = 'wrighroy'
 
 
 class Experiment(object):
+    """
+    An experiment consists of calling a control function and when enabled, a trial function.
+
+    Information about the experiment is encapsulated as instance attributes.
+
+    The experiment instance is then added to the Report system.
+
+    To lower the duty cycle of when the trial function is executed, adjust the asserted duty
+    cycle of the enabled method (ex: for 20% duty cycle, the enabled method should return rand(100) < 20).
+    """
     report = Report
 
     def __init__(self, description, report=None):
         self.description = description
         self.report = report or Experiment.report
-        self.use_function = None
-        self.use_result = None
-        self.use_exception = None
-        self.use_start_time = None
-        self.use_end_time = None
-        self.try_function = None
-        self.try_result = None
-        self.try_exception = None
-        self.try_start_time = None
-        self.try_end_time = None
+        self.control_function = None
+        self.control_result = None
+        self.control_exception = None
+        self.control_start_time = None
+        self.control_end_time = None
+        self.trial_function = None
+        self.trial_result = None
+        self.trial_exception = None
+        self.trial_start_time = None
+        self.trial_end_time = None
         self.is_enabled = False
         self.context = {}
 
@@ -43,31 +53,47 @@ class Experiment(object):
         return True
 
     def perform(self, **kwargs):
+        """
+        Perform the experiment by running the control function and, if enabled, the trial function.  Capture the
+        results, any exceptions, and the start and end times.
+
+        :param kwargs:
+        :type kwargs:
+        :return:
+        :rtype:
+        """
         self.context = dict(kwargs)
+
+        # run the control function
+
         try:
-            self.use_start_time = time.time()
-            self.use_result = self.use_function(**kwargs)
+            self.control_start_time = time.time()
+            self.control_result = self.control_function(**kwargs)
         except Exception as ex:
-            self.use_exception = ex
+            self.control_exception = ex
         finally:
-            self.use_end_time = time.time()
+            self.control_end_time = time.time()
+
+        # if enabled, run the trial function
 
         self.is_enabled = self.enabled()
         if self.is_enabled:
             try:
-                self.try_start_time = time.time()
-                self.try_result = self.try_function(**kwargs)
+                self.trial_start_time = time.time()
+                self.trial_result = self.trial_function(**kwargs)
             except Exception as ex:
-                self.try_exception = ex
+                self.trial_exception = ex
             finally:
-                self.try_end_time = time.time()
+                self.trial_end_time = time.time()
 
+        # add this experiment instance to the report
         if self.report is not None:
             self.report.add(self)
 
-        if self.use_exception is not None:
-            raise self.use_exception
-        return self.use_result
+        # now return as the control function would have returned
+        if self.control_exception is not None:
+            raise self.control_exception
+        return self.control_result
 
     def close(self):
         pass
