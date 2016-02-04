@@ -1,0 +1,8 @@
+include *.rst
+include *.txt
+include MANIFEST.in
+recursive-include scientist *.txt
+recursive-include scientist *.js
+recursive-include scientist *.html
+recursive-include scientist *.css
+recursive-include tests *

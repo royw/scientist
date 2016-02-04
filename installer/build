@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Based off of installer presented at:  http://www.linuxjournal.com/node/1005818
+
+source installer.conf
+
+# Based off of installer presented at:  http://www.linuxjournal.com/node/1005818
+
+cp -f installer.conf payload/
+
+# copy sdist package to payload/ then tar up the payload/ contents and clean up
+
+cd payload
+
+rm -f "$package_name"
+cp "../../dist/$package_name" .
+tar cf ../payload.tar ./*
+rm -f "$package_name"
+
+cd ..
+
+# compress payload.tar and build installer script by concatenating the
+# decompress script with the compressed payload
+
+if [ -e "payload.tar" ]; then
+    gzip payload.tar
+
+    if [ -e "payload.tar.gz" ]; then
+        cat decompress payload.tar.gz > $installer_script
+        chmod +x $installer_script
+        rm -f payload.tar.gz
+    else
+        echo "payload.tar.gz does not exist"
+        exit 1
+    fi
+else
+    echo "payload.tar does not exist"
+    exit 1
+fi
+
+echo "$installer_script created"
+exit 0

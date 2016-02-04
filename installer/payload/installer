@@ -1,0 +1,80 @@
+#!/bin/bash
+
+source installer.conf
+
+# Based off of installer presented at:  http://www.linuxjournal.com/node/1005818
+
+echo "Running Installer"
+
+# Install steps go here
+
+# if not installed, install virtualenv
+
+# find the first python in snakes that is available on the target system and place in python_path
+
+for pypath in $snakes
+do
+    echo "checking if $pypath is on your PATH"
+    if command -v "$pypath" 2>/dev/null >/dev/null; then
+        echo "$pypath is available"
+        python_path=`command -v "$pypath"`
+        break;
+    else
+        echo "$pypath is not available."
+    fi
+done
+
+# make sure we have a supported python
+
+if [ -z $python_path ]; then
+    echo "This system does not have a supported python ($snakes) on the path"
+    exit 1
+fi
+
+# install virtualenv if it is not already installed
+
+if command -v virtualenv 2>/dev/null; then
+    echo "virtualenv already installed"
+else
+    echo "installing virtualenv"
+    if command -v apt-get 2>/dev/null 1>/dev/null; then
+        sudo apt-get install python-virtualenv
+        mkdir -f ~/.virtualenvs
+    else
+        if command -v pip 2>/dev/null 1>/dev/null; then
+            sudo pip install virtualenv
+        else
+            echo "This is not a supported distribution.  Please manually install virtualenv then try this install again."
+            exit 1
+        fi
+    fi
+fi
+
+# create virtualenv
+
+venv="${{WORKON_HOME:=~/.virtualenvs}}"/"$executable_name"
+virtualenv -p $python_path $venv
+source $venv/bin/activate
+pip install --upgrade pip
+pip install --upgrade setuptools
+
+# install payload package into virtual environment
+
+pip install "$package_name"
+
+# symbolically link package script onto path
+
+if [ -d "$HOME/bin" ]; then
+    rm -f "$HOME/bin/$executable_name"
+    ln -s "$venv/bin/$executable_name" "$HOME/bin/$executable_name"
+    echo "$executable_name installed to $HOME/bin"
+elif [ -d /usr/local/bin ]; then
+    sudo rm -f "usr/local/bin/$executable_name"
+    sudo ln -s "$venv/bin/$executable_name" "/usr/local/bin/$executable_name"
+    echo "$executable_name installed to /usr/local/bin"
+else
+    echo "Please symbolically link $venv/bin/$executable_name to somewhere on your path."
+    echo
+fi
+
+exit 0

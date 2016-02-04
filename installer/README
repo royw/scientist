@@ -1,0 +1,14 @@
+Based off of installer presented at:  http://www.linuxjournal.com/node/1005818
+
+Requires the apt package manager (debian, ubuntu,...).
+
+You may be prompt you for your password:
+
+•	If virtualenv is not installed, then the installer installs virtualenv as sudo.
+•	The installer tries to install a symbolic link into $HOME/bin.
+    If you do not have $HOME/bin, then /usr/local/bin will be used, which requires sudo.
+
+To install, simply run:  ./scientist-installer.sh
+
+When installed, you should be able to run:  scientist
+
