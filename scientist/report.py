@@ -65,11 +65,12 @@ class Report(object):
     @classmethod
     def get(cls, description):
         """
-        Get the Report instance for the given description.  If description is None, then return all reports.
+        Get the Report instance for the given description.  If description is None, then raise ValueError.
+
         :param description: the experiment's description.
         :type description: str
-        :return: the report or re
-        :rtype:
+        :return: the report instance
+        :rtype: Report
         """
         if description is None:
             raise ValueError("The description must not be None")
@@ -114,8 +115,8 @@ class Report(object):
         def elapsed(start, end):
             return end - start
 
-        self.control_elapse_times = [elapsed(experiment.control_start_time, experiment.control_end_time) for experiment in
-                                     self.enabled_experiments]
+        self.control_elapse_times = [elapsed(experiment.control_start_time, experiment.control_end_time) for experiment
+                                     in self.enabled_experiments]
         self.control_avg_time = sum(self.control_elapse_times) / float(len(self.control_elapse_times))
 
         self.trial_elapse_times = [elapsed(experiment.trial_start_time, experiment.trial_end_time) for experiment in
