@@ -1,7 +1,7 @@
 # coding=utf-8
 
 """
-Handle an experiment's report.
+Base class for reports that just provides the interface child classes should use.
 """
 from textwrap import dedent
 
@@ -17,35 +17,17 @@ class Report(object):
 
     def __init__(self, description):
         self.description = description
-        self.experiments = []
-        self.control_count = 0
-        self.enabled_experiments = []
-        self.enabled_count = 0
-        self.contrary_experiments = []
-        self.contrary_results = 0
-        self.control_elapse_times = []
-        self.control_avg_time = 0
-        self.trial_elapse_times = []
-        self.trial_avg_time = 0
 
     def __str__(self):
         """
+        Child classes should override this method.
+
         :return: The report string for this Report instance
         :rtype: str
         """
         output = dedent("""
         {description}
-        Total experiments: {control_count}
-        Enabled experiments: {enabled_count}
-        Contrary results: {contrary_results}
-        Average time for control code: {control_avg_time}
-        Average time for trial code: {trial_avg_time}
         """.format(**self.__dict__))
-        if self.contrary_experiments:
-            output += "\nContrary Results:\n"
-            for experiment in self.contrary_experiments:
-                output += "control results: " + repr(experiment.control_result) + "\n"
-                output += "trial results: " + repr(experiment.trial_result) + "\n\n"
         return output
 
     @classmethod
@@ -76,7 +58,7 @@ class Report(object):
             raise ValueError("The description must not be None")
 
         if description not in Report.reports.keys():
-            Report.reports[description] = Report(description)
+            Report.reports[description] = cls(description)
         return Report.reports[description]
 
     @classmethod
@@ -87,7 +69,7 @@ class Report(object):
         :param experiment: the completed experiment instance
         :type experiment: Experiment
         """
-        report = Report.get(experiment.description)
+        report = cls.get(experiment.description)
         report.append(experiment)
 
     def append(self, experiment):
@@ -97,28 +79,12 @@ class Report(object):
         :param experiment: the completed experiment instance
         :type experiment: Experiment
         """
-        self.experiments.append(experiment)
+        # should be something like:
+        # self.experiments.append(experiment)
+        raise NotImplementedError()
 
     def summarize(self):
         """
         Calculate the report values for this Report instance.
         """
-        self.control_count = len(self.experiments)
-        self.enabled_experiments = [experiment for experiment in self.experiments if experiment.is_enabled]
-        self.enabled_count = len(self.enabled_experiments)
-        self.contrary_experiments = [experiment for experiment in self.enabled_experiments
-                                     if
-                                     experiment.control_result != experiment.trial_result or
-                                     experiment.control_exception != experiment.trial_exception]
-        self.contrary_results = len(self.contrary_experiments)
-
-        def elapsed(start, end):
-            return end - start
-
-        self.control_elapse_times = [elapsed(experiment.control_start_time, experiment.control_end_time) for experiment
-                                     in self.enabled_experiments]
-        self.control_avg_time = sum(self.control_elapse_times) / float(len(self.control_elapse_times))
-
-        self.trial_elapse_times = [elapsed(experiment.trial_start_time, experiment.trial_end_time) for experiment in
-                                   self.enabled_experiments]
-        self.trial_avg_time = sum(self.trial_elapse_times) / float(len(self.trial_elapse_times))
+        raise NotImplementedError()

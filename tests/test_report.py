@@ -5,12 +5,14 @@ Using 2 different algorithms for calculating fibonacci sequence (from
 http://stackoverflow.com/questions/494594/how-to-write-the-fibonacci-sequence-in-python)
 as control and trial experiment.
 """
-
+from scientist.in_memory_report import InMemoryReport
 from scientist.report import Report
 from scientist.science import Science
 from math import sqrt
 
 __docformat__ = 'restructuredtext en'
+
+Science.report = InMemoryReport
 
 
 def f(n):
@@ -76,7 +78,7 @@ def test_summary():
             result = experiment.perform(startNumber=index, endNumber=3000 + index)
             assert result
 
-    report = Report.get('Fibonacci subsets')
+    report = Science.report.get('Fibonacci subsets')
     report.summarize()
     print(str(report))
     assert report.control_count > 0
@@ -98,7 +100,7 @@ def test_summary_with_bug():
             experiment.trial_function = trial
             experiment.perform(startNumber=index, endNumber=3000 + index)
 
-    report = Report.get('Fibonacci subsets')
+    report = Science.report.get('Fibonacci subsets')
     report.summarize()
     print(str(report))
     assert report.control_count > 0

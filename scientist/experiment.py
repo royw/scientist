@@ -6,8 +6,6 @@ Experiment for using old function and trying new function simultaneously.
 
 import time
 
-from scientist.report import Report
-
 __docformat__ = 'restructuredtext en'
 __all__ = ('Experiment',)
 
@@ -23,11 +21,9 @@ class Experiment(object):
     To lower the duty cycle of when the trial function is executed, adjust the asserted duty
     cycle of the enabled method (ex: for 20% duty cycle, the enabled method should return rand(100) < 20).
     """
-    report = Report
-
     def __init__(self, description, report=None):
         self.description = description
-        self.report = report or Experiment.report
+        self.report = report
         self.control_function = None
         self.control_result = None
         self.control_exception = None
