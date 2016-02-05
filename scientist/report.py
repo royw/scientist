@@ -6,8 +6,6 @@ Handle an experiment's report.
 from textwrap import dedent
 
 __docformat__ = 'restructuredtext en'
-__author__ = 'wrighroy'
-
 __all__ = ('Report',)
 
 

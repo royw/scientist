@@ -11,7 +11,6 @@ from scientist.science import Science
 from math import sqrt
 
 __docformat__ = 'restructuredtext en'
-__author__ = 'wrighroy'
 
 
 def f(n):

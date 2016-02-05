@@ -8,7 +8,7 @@ from scientist.experiment import Experiment
 from scientist.report import Report
 
 __docformat__ = 'restructuredtext en'
-__author__ = 'wrighroy'
+__all__ = ('Science',)
 
 
 class Science(object):

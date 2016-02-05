@@ -9,7 +9,7 @@ import time
 from scientist.report import Report
 
 __docformat__ = 'restructuredtext en'
-__author__ = 'wrighroy'
+__all__ = ('Experiment',)
 
 
 class Experiment(object):
