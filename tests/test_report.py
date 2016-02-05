@@ -5,14 +5,16 @@ Using 2 different algorithms for calculating fibonacci sequence (from
 http://stackoverflow.com/questions/494594/how-to-write-the-fibonacci-sequence-in-python)
 as control and trial experiment.
 """
+import scientist
 from scientist.in_memory_report import InMemoryReport
-from scientist.report import Report
 from scientist.science import Science
 from math import sqrt
 
 __docformat__ = 'restructuredtext en'
 
 Science.report = InMemoryReport
+
+print("scientist-{ver}".format(ver=scientist.__version__))
 
 
 def f(n):
