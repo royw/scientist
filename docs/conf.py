@@ -83,10 +83,10 @@ print("sys.path => %s" % sys.path)
 project_name = u'Science'
 project_title = u'{project_name} Documentation'.format(project_name=project_name)
 project_author = u'Roy Wright'
-project_author_email = u'roy.oti.wright@hpe.com'
+project_author_email = u'roy@wright.org'
 project_description = u"Port of python of github's ruby scientist."
 project_package = u'scientist'
-project_bugzilla_url = u'https://bugzilla.austin.hp.com'
+project_bugzilla_url = u'https://bugzilla.example.com'
 
 # -- hack that modifies autodoc to skip unwanted class methods ----------------
 

@@ -49,7 +49,7 @@ Project.metadata(
         # author should be your real name, not your account name.
         'author': 'Roy Wright',
 
-        'author_email': 'roy.oti.wright@hpe.com',
+        'author_email': 'roy@wright.org',
 
         # This is the description of your application.  Please be concise and one paragraph should be enough.
         'description': "Port of python of github's ruby scientist.",
