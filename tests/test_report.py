@@ -5,6 +5,8 @@ Using 2 different algorithms for calculating fibonacci sequence (from
 http://stackoverflow.com/questions/494594/how-to-write-the-fibonacci-sequence-in-python)
 as control and trial experiment.
 """
+from itertools import izip_longest
+
 import scientist
 from scientist.in_memory_report import InMemoryReport
 from scientist.science import Science
@@ -75,8 +77,8 @@ def test_summary():
 
     for index in range(0, 2000, 100):
         with Science('Fibonacci subsets') as experiment:
-            experiment.control_function = original
-            experiment.trial_function = trial
+            experiment.control.function = original
+            experiment.trial.function = trial
             result = experiment.perform(startNumber=index, endNumber=3000 + index)
             assert result
 
@@ -96,16 +98,41 @@ def test_summary_with_bug():
     def trial(**kwargs):
         return list(BuggySubFib(**kwargs))
 
+    def first4(value_list):
+        return value_list[0:4]
+
     for index in range(0, 2000, 100):
-        with Science('Fibonacci subsets') as experiment:
-            experiment.control_function = original
-            experiment.trial_function = trial
+        with Science('Testing contrary detection') as experiment:
+            experiment.control.function = original
+            experiment.trial.function = trial
+            experiment.clean = first4
             experiment.perform(startNumber=index, endNumber=3000 + index)
 
-    report = Science.report.get('Fibonacci subsets')
+    report = Science.report.get('Testing contrary detection')
     report.summarize()
     print(str(report))
     assert report.control_count > 0
     assert report.enabled_count > 0
     assert report.contrary_results == 1
     assert str(report)
+
+
+def test_lambda():
+    for index in range(0, 2000, 100):
+        with Science('testing lambdas') as experiment:
+            experiment.control.function = lambda **kwargs: SubFib(**kwargs)
+            experiment.trial.function = lambda **kwargs: NewSubFib(**kwargs)
+            # the lambdas here return generators so we need to tell the experiment to compare generates
+            experiment.comparator = experiment.compare_generators
+            result = experiment.perform(startNumber=index, endNumber=3000 + index)
+            assert result
+
+    report = Science.report.get('testing lambdas')
+    report.summarize()
+    print(str(report))
+    assert report.control_count > 0
+    assert report.enabled_count > 0
+    assert report.contrary_results == 0
+    assert str(report)
+
+

@@ -5,9 +5,31 @@ Experiment for using old function and trying new function simultaneously.
 """
 
 import time
+from itertools import tee, izip_longest
 
 __docformat__ = 'restructuredtext en'
 __all__ = ('Experiment',)
+
+
+class Runner(object):
+    def __init__(self):
+        self.function = None
+        self.value = None
+        self.cleaned_value = None
+        self.exception = None
+        self.start_time = None
+        self.end_time = None
+
+    def execute(self, clean, **kwargs):
+        try:
+            self.start_time = time.time()
+            self.value = self.function(**kwargs)
+            if clean is not None:
+                self.cleaned_value = clean(self.function(**kwargs))
+        except Exception as ex:
+            self.exception = ex
+        finally:
+            self.end_time = time.time()
 
 
 class Experiment(object):
@@ -24,16 +46,11 @@ class Experiment(object):
     def __init__(self, description, report=None):
         self.description = description
         self.report = report
-        self.control_function = None
-        self.control_result = None
-        self.control_exception = None
-        self.control_start_time = None
-        self.control_end_time = None
-        self.trial_function = None
-        self.trial_result = None
-        self.trial_exception = None
-        self.trial_start_time = None
-        self.trial_end_time = None
+        self.comparator = self.compare
+        self.clean = None
+        self.ignore = None
+        self.control = Runner()
+        self.trial = Runner()
         self.is_enabled = False
         self.context = {}
 
@@ -61,35 +78,42 @@ class Experiment(object):
         self.context = dict(kwargs)
 
         # run the control function
-
-        try:
-            self.control_start_time = time.time()
-            self.control_result = self.control_function(**kwargs)
-        except Exception as ex:
-            self.control_exception = ex
-        finally:
-            self.control_end_time = time.time()
+        self.control.execute(clean=self.clean, **kwargs)
 
         # if enabled, run the trial function
 
         self.is_enabled = self.enabled()
         if self.is_enabled:
-            try:
-                self.trial_start_time = time.time()
-                self.trial_result = self.trial_function(**kwargs)
-            except Exception as ex:
-                self.trial_exception = ex
-            finally:
-                self.trial_end_time = time.time()
+            self.before_run()
+            self.trial.execute(clean=self.clean, **kwargs)
 
         # add this experiment instance to the report
         if self.report is not None:
             self.report.add(self)
 
         # now return as the control function would have returned
-        if self.control_exception is not None:
-            raise self.control_exception
-        return self.control_result
+        if self.control.exception is not None:
+            raise self.control.exception
+        return self.control.value
 
     def close(self):
         pass
+
+    # noinspection PyMethodMayBeStatic
+    def before_run(self):
+        """
+        Only ran when the trail is enabled.
+
+        Override for expensive setup for trail functions.
+        """
+        pass
+
+    @staticmethod
+    def compare(a, b):
+        return a == b
+
+    @staticmethod
+    def compare_generators(gen_1, gen_2):
+        gen_1, gen_1_teed = tee(gen_1)
+        sentinel = object()
+        return all(a == b for a, b in izip_longest(gen_1, gen_2, fillvalue=sentinel))

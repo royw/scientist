@@ -12,7 +12,6 @@ __all__ = ('InMemoryReport',)
 
 
 class InMemoryReport(Report):
-
     def __init__(self, description):
         super(InMemoryReport, self).__init__(description)
         self.experiments = []
@@ -31,20 +30,25 @@ class InMemoryReport(Report):
         :return: The report string for this Report instance
         :rtype: str
         """
-        output = dedent("""
+        output = [dedent("""
         {description}
         Total experiments: {control_count}
         Enabled experiments: {enabled_count}
         Contrary results: {contrary_results}
         Average time for control code: {control_avg_time}
         Average time for trial code: {trial_avg_time}
-        """.format(**self.__dict__))
+        """.format(**self.__dict__))]
         if self.contrary_experiments:
-            output += "\nContrary Results:\n"
+            output.append("Contrary Results:")
             for experiment in self.contrary_experiments:
-                output += "control results: " + repr(experiment.control_result) + "\n"
-                output += "trial results: " + repr(experiment.trial_result) + "\n\n"
-        return output
+                output.append("control value: " + repr(experiment.control.value))
+                output.append("trial value: " + repr(experiment.trial.value))
+                if experiment.control.cleaned_value is not None:
+                    output.append("control cleaned value: " + repr(experiment.control.cleaned_value))
+                if experiment.trial.cleaned_value is not None:
+                    output.append("trial cleaned value: " + repr(experiment.trial.cleaned_value))
+                output.append("")
+        return "\n".join(output)
 
     def append(self, experiment):
         """
@@ -63,18 +67,18 @@ class InMemoryReport(Report):
         self.enabled_experiments = [experiment for experiment in self.experiments if experiment.is_enabled]
         self.enabled_count = len(self.enabled_experiments)
         self.contrary_experiments = [experiment for experiment in self.enabled_experiments
-                                     if
-                                     experiment.control_result != experiment.trial_result or
-                                     experiment.control_exception != experiment.trial_exception]
+                                     if not experiment.comparator(experiment.control.value,
+                                                                  experiment.trial.value) or
+                                     experiment.control.exception != experiment.trial.exception]
         self.contrary_results = len(self.contrary_experiments)
 
         def elapsed(start, end):
             return end - start
 
-        self.control_elapse_times = [elapsed(experiment.control_start_time, experiment.control_end_time) for experiment
+        self.control_elapse_times = [elapsed(experiment.control.start_time, experiment.control.end_time) for experiment
                                      in self.enabled_experiments]
         self.control_avg_time = sum(self.control_elapse_times) / float(len(self.control_elapse_times))
 
-        self.trial_elapse_times = [elapsed(experiment.trial_start_time, experiment.trial_end_time) for experiment in
+        self.trial_elapse_times = [elapsed(experiment.trial.start_time, experiment.trial.end_time) for experiment in
                                    self.enabled_experiments]
         self.trial_avg_time = sum(self.trial_elapse_times) / float(len(self.trial_elapse_times))
