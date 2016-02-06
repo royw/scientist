@@ -10,7 +10,7 @@ import sys
 # Current recommended practice is to include supported pythons in the
 # classifiers kwarg even though there is no automated enforcement.
 if sys.version_info < (2, 6):
-    print('Science requires python 26 or newer')
+    print('Scientist requires python 26 or newer')
     exit(-1)
 
 #: str: Regular expression for parsing __version__ line in the packages __init__.py file.
@@ -106,7 +106,7 @@ if os.path.isfile('setup.json'):
         print("Unable to load setup.json - %s" % str(ex))
 
 default_kwargs = {
-    'name': 'Science',
+    'name': 'Scientist',
     'version': get_project_version(),
     'author': 'Roy Wright',
     'author_email': 'roy@wright.org',

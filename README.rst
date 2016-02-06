@@ -25,7 +25,7 @@ Usage
         return bar(**kwargs)
 
     try:
-        with Science('description') as experiment:
+        with Scientist('description') as experiment:
             experiment.control_function = original
             experiment.trial_function = trial
             control_result = experiment.perform(user='me', password='sekret')

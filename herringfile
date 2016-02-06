@@ -42,8 +42,8 @@ Project.metadata(
         # 'name': 'FooBar',           # camelcase
         # 'title': 'foo_bar',         # snakecase
         # 'package': 'foo_bar',       # snakecase
-        'name': 'Science',             # camelcase
-        'title': 'Science',           # snakecase
+        'name': 'Scientist',             # camelcase
+        'title': 'Scientist',           # snakecase
         'package': 'scientist',       # snakecase
 
         # author should be your real name, not your account name.

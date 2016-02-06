@@ -3,7 +3,6 @@
 """
 Base class for reports that just provides the interface child classes should use.
 """
-from itertools import tee, izip_longest
 from textwrap import dedent
 
 __docformat__ = 'restructuredtext en'

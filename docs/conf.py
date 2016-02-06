@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Science documentation build configuration file.
+Scientist documentation build configuration file.
 
 This file is exec'd with the current directory set to its containing dir.
 
@@ -80,7 +80,7 @@ print("sys.path => %s" % sys.path)
 # -- Project variables
 
 # limit template substitutions to here to make it easier to update (merge) the rest of the file
-project_name = u'Science'
+project_name = u'Scientist'
 project_title = u'{project_name} Documentation'.format(project_name=project_name)
 project_author = u'Roy Wright'
 project_author_email = u'roy@wright.org'
@@ -479,7 +479,7 @@ html_theme_options = {
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 # html_logo = None
-html_logo = "Science.png"
+html_logo = "Scientist.png"
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
