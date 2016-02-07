@@ -24,6 +24,7 @@ class InMemoryReport(Report):
         self.control_avg_time = 0
         self.trial_elapse_times = []
         self.trial_avg_time = 0
+        self.statuses = {}
 
     def __str__(self):
         """
@@ -37,6 +38,7 @@ class InMemoryReport(Report):
         Contrary results: {contrary_results}
         Average time for control code: {control_avg_time}
         Average time for trial code: {trial_avg_time}
+        Statuses: {statuses}
         """.format(**self.__dict__))]
         if self.contrary_experiments:
             output.append("Contrary Results:")
@@ -82,3 +84,8 @@ class InMemoryReport(Report):
         self.trial_elapse_times = [elapsed(experiment.trial.start_time, experiment.trial.end_time) for experiment in
                                    self.enabled_experiments]
         self.trial_avg_time = sum(self.trial_elapse_times) / float(len(self.trial_elapse_times))
+        self.statuses = {}
+        for experiment in self.experiments:
+            if experiment.status not in self.statuses:
+                self.statuses[experiment.status] = 0
+            self.statuses[experiment.status] += 1

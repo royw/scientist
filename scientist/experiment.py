@@ -6,6 +6,7 @@ Experiment for using old function and trying new function simultaneously.
 
 import time
 from itertools import tee, izip_longest
+from random import randint
 
 __docformat__ = 'restructuredtext en'
 __all__ = ('Experiment',)
@@ -32,6 +33,16 @@ class Runner(object):
             self.end_time = time.time()
 
 
+valid_statuses = ['init', 'disabled', 'ignored', 'match', 'contrite', 'error']
+
+
+def status(status_name):
+    if status_name not in valid_statuses:
+        print("Invalid status: {name} - not in {values}".format(name=status_name, values=repr(valid_statuses)))
+        return 'error'
+    return status_name
+
+
 class Experiment(object):
     """
     An experiment consists of calling a control function and when enabled, a trial function.
@@ -53,6 +64,8 @@ class Experiment(object):
         self.trial = Runner()
         self.is_enabled = False
         self.context = {}
+        self.status = status('init')
+        self.duty_cycle = 100
 
     # noinspection PyMethodMayBeStatic
     def enabled(self):
@@ -63,6 +76,8 @@ class Experiment(object):
         :return: asserted if enabled
         :rtype: bool
         """
+        if self.duty_cycle < 100:
+            return randint(1, 100) < self.duty_cycle
         return True
 
     def perform(self, **kwargs):
@@ -86,6 +101,15 @@ class Experiment(object):
         if self.is_enabled:
             self.before_run()
             self.trial.execute(clean=self.clean, **kwargs)
+            if self.ignore is not None and self.ignore(**kwargs):
+                self.status = status('ignored')
+            else:
+                if self.comparator is not None and self.comparator(self.control.value, self.trial.value):
+                    self.status = status('match')
+                else:
+                    self.status = status('contrite')
+        else:
+            self.status = status('disabled')
 
         # add this experiment instance to the report
         if self.report is not None:

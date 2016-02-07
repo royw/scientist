@@ -116,16 +116,23 @@ def test_summary_with_bug():
     assert report.enabled_count > 0
     assert report.contrary_results == 1
     assert str(report)
+    assert report.statuses['match']
+    assert report.statuses['contrite'] == 1
 
 
 def test_lambda():
-    for index in range(0, 2000, 100):
+    def ignore(**kwargs):
+        return kwargs['startNumber'] % 1000 == 0
+
+    for index in range(0, 200000, 100):
         with Scientist('testing lambdas') as experiment:
             experiment.control.function = lambda **kwargs: SubFib(**kwargs)
             experiment.trial.function = lambda **kwargs: NewSubFib(**kwargs)
             # the lambdas here return generators so we need to tell the experiment to compare generates
             experiment.comparator = experiment.compare_generators
-            result = experiment.perform(startNumber=index, endNumber=3000 + index)
+            experiment.duty_cycle = 50
+            experiment.ignore = ignore
+            result = experiment.perform(startNumber=index, endNumber=30000 + index)
             assert result
 
     report = Scientist.report.get('testing lambdas')
@@ -135,3 +142,6 @@ def test_lambda():
     assert report.enabled_count > 0
     assert report.contrary_results == 0
     assert str(report)
+    assert report.statuses['disabled']
+    assert report.statuses['ignored']
+    assert report.statuses['match']
