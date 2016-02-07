@@ -130,6 +130,7 @@ def test_lambda():
             experiment.trial.function = lambda **kwargs: NewSubFib(**kwargs)
             # the lambdas here return generators so we need to tell the experiment to compare generates
             experiment.comparator = experiment.compare_generators
+            # for grins, let's only run the trial half the time and ignore startNumbers on 1000 boundary
             experiment.duty_cycle = 50
             experiment.ignore = ignore
             result = experiment.perform(startNumber=index, endNumber=30000 + index)
