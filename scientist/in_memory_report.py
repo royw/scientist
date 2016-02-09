@@ -33,13 +33,14 @@ class InMemoryReport(Report):
         """
         output = [dedent("""
         {description}
+        {hr}
         Total experiments: {control_count}
         Enabled experiments: {enabled_count}
         Contrary results: {contrary_results}
         Average time for control code: {control_avg_time}
         Average time for trial code: {trial_avg_time}
         Statuses: {statuses}
-        """.format(**self.__dict__))]
+        """.format(hr='-' * len(self.description), **self.__dict__))]
         if self.contrary_experiments:
             output.append("Contrary Results:")
             for experiment in self.contrary_experiments:
@@ -69,9 +70,7 @@ class InMemoryReport(Report):
         self.enabled_experiments = [experiment for experiment in self.experiments if experiment.is_enabled]
         self.enabled_count = len(self.enabled_experiments)
         self.contrary_experiments = [experiment for experiment in self.enabled_experiments
-                                     if not experiment.comparator(experiment.control.value,
-                                                                  experiment.trial.value) or
-                                     experiment.control.exception != experiment.trial.exception]
+                                     if experiment.status == 'contrite']
         self.contrary_results = len(self.contrary_experiments)
 
         def elapsed(start, end):

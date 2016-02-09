@@ -54,6 +54,9 @@ class Experiment(object):
     To lower the duty cycle of when the trial function is executed, adjust the asserted duty
     cycle of the enabled method (ex: for 20% duty cycle, the enabled method should return rand(100) < 20).
     """
+
+    default_context = {}
+
     def __init__(self, description, report=None):
         self.description = description
         self.report = report
@@ -63,7 +66,7 @@ class Experiment(object):
         self.control = Runner()
         self.trial = Runner()
         self.is_enabled = False
-        self.context = {}
+        self.context = dict(Experiment.default_context)
         self.status = status('init')
         self.duty_cycle = 100
 
@@ -90,24 +93,28 @@ class Experiment(object):
         :return:
         :rtype:
         """
-        self.context = dict(kwargs)
+        context = dict(self.default_context)
+        context.update(self.context)
+        context.update(dict(kwargs))
 
         # run the control function
-        self.control.execute(clean=self.clean, **kwargs)
+        self.control.execute(clean=self.clean, **context)
 
         # if enabled, run the trial function
 
         self.is_enabled = self.enabled()
         if self.is_enabled:
             self.before_run()
-            self.trial.execute(clean=self.clean, **kwargs)
-            if self.ignore is not None and self.ignore(**kwargs):
+            self.trial.execute(clean=self.clean, **context)
+            if self.ignore is not None and self.ignore(**context):
                 self.status = status('ignored')
             else:
-                if self.comparator is not None and self.comparator(self.control.value, self.trial.value):
-                    self.status = status('match')
-                else:
+                self.status = status('match')
+                if self.control.exception != self.trial.exception:
                     self.status = status('contrite')
+                else:
+                    if self.comparator is not None and not self.comparator(self.control.value, self.trial.value):
+                        self.status = status('contrite')
         else:
             self.status = status('disabled')
 

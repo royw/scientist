@@ -8,6 +8,7 @@ as control and trial experiment.
 import sys
 
 import scientist
+from scientist.experiment import Experiment
 from scientist.in_memory_report import InMemoryReport
 from scientist import Scientist
 from math import sqrt
@@ -17,7 +18,11 @@ __docformat__ = 'restructuredtext en'
 Scientist.report = InMemoryReport
 
 print("sys.path: {path}".format(path=sys.path))
-print("scientist-{ver}".format(ver=scientist.__version__))
+
+
+def test_version():
+    print("scientist-{ver}".format(ver=scientist.__version__))
+    assert scientist.__version__
 
 
 def f(n):
@@ -70,6 +75,9 @@ def BuggySubFib(startNumber, endNumber):
 
 
 def test_summary():
+    # noinspection PyProtectedMember
+    name = sys._getframe().f_code.co_name
+
     def original(**kwargs):
         return list(SubFib(**kwargs))
 
@@ -77,13 +85,13 @@ def test_summary():
         return list(NewSubFib(**kwargs))
 
     for index in range(0, 2000, 100):
-        with Scientist('Fibonacci subsets') as experiment:
+        with Scientist(name) as experiment:
             experiment.control.function = original
             experiment.trial.function = trial
             result = experiment.perform(startNumber=index, endNumber=3000 + index)
             assert result
 
-    report = Scientist.report.get('Fibonacci subsets')
+    report = Scientist.report.get(name)
     report.summarize()
     print(str(report))
     assert report.control_count > 0
@@ -93,6 +101,9 @@ def test_summary():
 
 
 def test_summary_with_bug():
+    # noinspection PyProtectedMember
+    name = sys._getframe().f_code.co_name
+
     def original(**kwargs):
         return list(SubFib(**kwargs))
 
@@ -103,13 +114,13 @@ def test_summary_with_bug():
         return value_list[0:4]
 
     for index in range(0, 2000, 100):
-        with Scientist('Testing contrary detection') as experiment:
+        with Scientist(name) as experiment:
             experiment.control.function = original
             experiment.trial.function = trial
             experiment.clean = first4
             experiment.perform(startNumber=index, endNumber=3000 + index)
 
-    report = Scientist.report.get('Testing contrary detection')
+    report = Scientist.report.get(name)
     report.summarize()
     print(str(report))
     assert report.control_count > 0
@@ -121,22 +132,27 @@ def test_summary_with_bug():
 
 
 def test_lambda():
+    # noinspection PyProtectedMember
+    name = sys._getframe().f_code.co_name
+
     def ignore(**kwargs):
         return kwargs['startNumber'] % 1000 == 0
 
     for index in range(0, 200000, 100):
-        with Scientist('testing lambdas') as experiment:
+        with Scientist(name) as experiment:
             experiment.control.function = lambda **kwargs: SubFib(**kwargs)
             experiment.trial.function = lambda **kwargs: NewSubFib(**kwargs)
             # the lambdas here return generators so we need to tell the experiment to compare generates
             experiment.comparator = experiment.compare_generators
-            # for grins, let's only run the trial half the time and ignore startNumbers on 1000 boundary
-            experiment.duty_cycle = 50
+            # for grins, let's only run the trial a quarter of the time and ignore startNumbers on 1000 boundary
+            experiment.duty_cycle = 25
             experiment.ignore = ignore
-            result = experiment.perform(startNumber=index, endNumber=30000 + index)
+            # context gets combined with kwargs to perform()
+            experiment.context = {'startNumber': index, 'endNumber': 30000 + index}
+            result = experiment.perform()
             assert result
 
-    report = Scientist.report.get('testing lambdas')
+    report = Scientist.report.get(name)
     report.summarize()
     print(str(report))
     assert report.control_count > 0
@@ -145,4 +161,56 @@ def test_lambda():
     assert str(report)
     assert report.statuses['disabled']
     assert report.statuses['ignored']
+    assert report.statuses['match']
+
+
+def test_default_context():
+    # noinspection PyProtectedMember
+    name = sys._getframe().f_code.co_name
+
+    Experiment.default_context = {'startNumber': 0}
+
+    for index in range(0, 2000, 100):
+        with Scientist(name) as experiment:
+            experiment.control.function = lambda **kwargs: SubFib(**kwargs)
+            experiment.trial.function = lambda **kwargs: NewSubFib(**kwargs)
+            # the lambdas here return generators so we need to tell the experiment to compare generates
+            experiment.comparator = experiment.compare_generators
+            # context gets combined with default_context
+            experiment.context = {'endNumber': 30000 + index}
+            result = experiment.perform()
+            assert result
+
+    report = Scientist.report.get(name)
+    report.summarize()
+    print(str(report))
+    assert report.control_count > 0
+    assert report.enabled_count > 0
+    assert report.contrary_results == 0
+    assert str(report)
+    assert report.statuses['match']
+
+
+def test_context():
+    # noinspection PyProtectedMember
+    name = sys._getframe().f_code.co_name
+
+    for index in range(0, 2000, 100):
+        with Scientist(name) as experiment:
+            experiment.control.function = lambda **kwargs: SubFib(**kwargs)
+            experiment.trial.function = lambda **kwargs: NewSubFib(**kwargs)
+            # the lambdas here return generators so we need to tell the experiment to compare generates
+            experiment.comparator = experiment.compare_generators
+            # context gets combined with kwargs to perform()
+            experiment.context = {'endNumber': 30000 + index}
+            result = experiment.perform(startNumber=index)
+            assert result
+
+    report = Scientist.report.get(name)
+    report.summarize()
+    print(str(report))
+    assert report.control_count > 0
+    assert report.enabled_count > 0
+    assert report.contrary_results == 0
+    assert str(report)
     assert report.statuses['match']
