@@ -54,7 +54,7 @@ from scientist.report import Report
 
 __docformat__ = 'restructuredtext en'
 __all__ = ('Scientist',)
-__version__ = '0.0.4'
+__version__ = '0.0.5'
 
 
 # To work around python's half-assed packaging scheme, the Scientist class is located here instead of in it's own file.

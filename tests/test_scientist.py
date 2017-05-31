@@ -74,6 +74,16 @@ def BuggySubFib(startNumber, endNumber):
             yield cur
 
 
+def KaboomSubFib(startNumber, endNumber):
+    for cur in F():
+        if cur == 5:
+            raise ValueError(cur)
+        if cur > endNumber:
+            return
+        if cur >= startNumber:
+            yield cur
+
+
 def test_summary():
     # noinspection PyProtectedMember
     name = sys._getframe().f_code.co_name
@@ -214,3 +224,62 @@ def test_context():
     assert report.contrary_results == 0
     assert str(report)
     assert report.statuses['match']
+
+
+def test_exception():
+    # noinspection PyProtectedMember
+    name = sys._getframe().f_code.co_name
+
+    for index in range(0, 2000, 100):
+        with Scientist(name) as experiment:
+            experiment.control.function = lambda **kwargs: SubFib(**kwargs)
+            experiment.trial.function = lambda **kwargs: KaboomSubFib(**kwargs)
+            # the lambdas here return generators so we need to tell the experiment to compare generates
+            experiment.comparator = experiment.compare_generators
+            # context gets combined with kwargs to perform()
+            experiment.context = {'endNumber': 30000 + index}
+            result = experiment.perform(startNumber=index)
+            assert result
+
+    report = Scientist.report.get(name)
+    report.summarize()
+    print(str(report))
+    assert report.control_count > 0
+    assert report.enabled_count > 0
+    assert report.contrary_results > 0
+    assert str(report)
+    assert report.statuses['contrite']
+
+
+def test_before_run():
+    # noinspection PyProtectedMember
+    name = sys._getframe().f_code.co_name
+
+    def before_run(experiment_):
+        experiment_.duty_cycle *= 2
+
+    for index in range(0, 200000, 100):
+        with Scientist(name) as experiment:
+            experiment.before_run = before_run
+            experiment.control.function = lambda **kwargs: SubFib(**kwargs)
+            experiment.trial.function = lambda **kwargs: NewSubFib(**kwargs)
+            # the lambdas here return generators so we need to tell the experiment to compare generates
+            experiment.comparator = experiment.compare_generators
+            # for grins, let's only run the trial a quarter of the time and ignore startNumbers on 1000 boundary
+            experiment.duty_cycle = 25
+            # context gets combined with kwargs to perform()
+            experiment.context = {'startNumber': index, 'endNumber': 30000 + index}
+            result = experiment.perform()
+            assert result
+
+    report = Scientist.report.get(name)
+    report.summarize()
+    print(str(report))
+    assert report.control_count > 0
+    assert report.enabled_count > 0
+    assert report.contrary_results == 0
+    assert str(report)
+    assert report.statuses['disabled']
+    assert report.statuses['match']
+
+

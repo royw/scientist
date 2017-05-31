@@ -5,7 +5,7 @@ Experiment for using old function and trying new function simultaneously.
 """
 
 import time
-from itertools import tee, izip_longest
+from itertools import tee, repeat, chain, izip_longest
 from random import randint
 
 __docformat__ = 'restructuredtext en'
@@ -69,6 +69,7 @@ class Experiment(object):
         self.context = dict(Experiment.default_context)
         self.status = status('init')
         self.duty_cycle = 100
+        self.before_run = None
 
     # noinspection PyMethodMayBeStatic
     def enabled(self):
@@ -104,7 +105,7 @@ class Experiment(object):
 
         self.is_enabled = self.enabled()
         if self.is_enabled:
-            self.before_run()
+            self.before_run is not None and self.before_run(self)
             self.trial.execute(clean=self.clean, **context)
             if self.ignore is not None and self.ignore(**context):
                 self.status = status('ignored')
@@ -131,20 +132,21 @@ class Experiment(object):
         pass
 
     # noinspection PyMethodMayBeStatic
-    def before_run(self):
-        """
-        Only ran when the trail is enabled.
-
-        Override for expensive setup for trail functions.
-        """
-        pass
-
-    @staticmethod
-    def compare(a, b):
+    def compare(self, a, b):
         return a == b
 
-    @staticmethod
-    def compare_generators(gen_1, gen_2):
-        gen_1, gen_1_teed = tee(gen_1)
-        sentinel = object()
-        return all(a == b for a, b in izip_longest(gen_1, gen_2, fillvalue=sentinel))
+    # noinspection PyMethodMayBeStatic
+    def compare_generators(self, gen_1, gen_2):
+        list_1 = None
+        try:
+            list_1 = list(gen_1)
+        except Exception as ex:
+            self.control.exception = ex
+
+        list_2 = None
+        try:
+            list_2 = list(gen_2)
+        except Exception as ex:
+            self.trial.exception = ex
+
+        return list_1 == list_2
